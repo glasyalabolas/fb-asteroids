@@ -265,7 +265,7 @@ sub remove overload( byref bm as BulletManager, id as integer )
   bm.bulletCount -= 1
 end sub
 
-sub move overload( byref sh as Ship, byval dt as double )
+sub move overload( byref sh as Ship, dt as double )
   if( sh.vel.lengthSq() > sh.maxSpeed ^ 2 ) then
     sh.vel = sh.vel.normalized() * sh.maxSpeed
   end if
@@ -281,7 +281,7 @@ sub rotate( byref sh as Ship, a as single )
   sh.dir = sh.dir.rotated( toRad( a ) ).normalize()
 end sub
 
-sub shoot( byref state as GameState, byref sh as Ship, byval dt as double )
+sub shoot( byref state as GameState, byref sh as Ship, dt as double )
   '' Choose a random direction arc
   var bd = sh.dir.rotated( _
     toRad( rng( -5.0f, 5.0f ) ) ).normalize()
@@ -440,7 +440,7 @@ end sub
 /'
   Updating
 '/
-sub updateAsteroids( byref state as GameState, byval dt as double )
+sub updateAsteroids( byref state as GameState, dt as double )
   '' The two Asteroid bounding circles
   var _
     a1 = BoundingCircle(), _
