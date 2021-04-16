@@ -57,9 +57,7 @@ constructor Ship( byref aPos as Vec2, aSize as single )
   constructor( aPos, Vec2( 0.0f, -1.0f ), aSize )
 end constructor
 
-constructor Ship( _
-  byref aPos as Vec2, byref aDir as Vec2, aSize as single )
-  
+constructor Ship( byref aPos as Vec2, byref aDir as Vec2, aSize as single )
   pos = aPos
   dir = aDir.normalized()
   size = aSize
@@ -68,12 +66,9 @@ constructor Ship( _
   turnSpeed = 360.0f
 end constructor
 
-destructor Ship()
-end destructor
+destructor Ship() : end destructor
 
-/'
-  Represents the keys used for player controls
-'/
+'' Represents the keys used for player controls
 type PlayerControls
   as long _
     forward, backward, _
@@ -81,9 +76,7 @@ type PlayerControls
     fire
 end type
 
-/'
-  Represents a player
-'/
+'' Represents a player
 type Player
   declare constructor()
   declare constructor( byref as Ship )
@@ -103,12 +96,9 @@ constructor Player( byref aShip as Ship )
   health = 100.0f
 end constructor
 
-destructor Player()
-end destructor
+destructor Player() : end destructor
 
-/'
-  Represents an asteroid
-'/
+'' Represents an asteroid
 type Asteroid
   declare constructor()
   declare constructor( byref as Vec2, byref as Vec2, as single )
@@ -123,9 +113,7 @@ constructor Asteroid()
   constructor( Vec2(), Vec2(), 0.0f )
 end constructor
 
-constructor Asteroid( _
-  byref aPos as Vec2, byref aVel as Vec2, aSize as single )
-  
+constructor Asteroid( byref aPos as Vec2, byref aVel as Vec2, aSize as single )
   pos = aPos
   vel = aVel
   size = aSize
@@ -135,9 +123,7 @@ end constructor
 
 destructor Asteroid() : end destructor
 
-/'
-  Represents a bullet
-'/
+'' Represents a bullet
 type Bullet
   declare constructor()
   declare constructor( byref as Vec2, byref as Vec2 )
@@ -175,9 +161,7 @@ end constructor
 
 destructor Bullet() : end destructor
 
-/'
-  Represents a group of bullets
-'/
+'' Represents a group of bullets
 type BulletManager
   declare constructor()
   declare constructor( as integer )
@@ -196,12 +180,9 @@ constructor BulletManager( numBullets as integer )
   bulletCount = 0
 end constructor
 
-destructor BulletManager()
-end destructor
+destructor BulletManager() : end destructor
 
-/'
-  Represents the global game state
-'/
+'' Represents the global game state
 type GameState
   declare constructor()
   declare constructor( as integer, as integer, as integer )
@@ -226,8 +207,7 @@ end type
 
 '' Maximum number of asteroids at the same time. If this number
 '' is exceeded, the game would not spawn more asteroids.
-dim as const integer _
-  GameState.MAX_ASTEROIDS = 1000
+dim as const integer GameState.MAX_ASTEROIDS = 1000
 
 constructor GameState()
   constructor( 1, 1, 50 )
@@ -247,12 +227,9 @@ constructor GameState( _
     asteroids( 0 to MAX_ASTEROIDS - 1 )
 end constructor
 
-destructor GameState()
-end destructor
+destructor GameState() : end destructor
 
-/'
-  Basic operations on data structures
-'/
+'' Basic operations on data structures
 sub add overload( byref bm as BulletManager, byref b as Bullet )
   if( bm.bulletCount <= ubound( bm.bullets ) ) then
     bm.bulletCount += 1
@@ -300,9 +277,7 @@ sub move( byref a as Asteroid, dt as double )
   a.pos += a.vel * dt
 end sub
 
-/'
-  Physics and collision detection and response
-'/
+'' Physics and collision detection and response
 function getCollisionNormal( _
     byref N as Vec2, _
     byref v1 as Vec2, _
@@ -337,7 +312,7 @@ function resolveCollision( _
   var mtv = _
     -( ( bc1.center - bc2.center ) - _
        ( bc1.center - bc2.center ).ofLength( _
-        bc1.radius + bc2.radius ) )
+         bc1.radius + bc2.radius ) )
       
   '' And reflect the velocities along the normal of
   '' the collision.
@@ -384,7 +359,7 @@ sub asteroidDestroyed( byref state as GameState, dt as double, asteroidId as int
     
     dim as single s = destroyed.size * 0.4f
     
-    if( s >= 5.0f andAlso .asteroidCount + 4 < state.MAX_ASTEROIDS ) then
+    if( s >= 5.0f andAlso ( .asteroidCount + 4 ) < state.MAX_ASTEROIDS ) then
       .asteroidCount += 4
       
       for i as integer = 0 to 3
@@ -437,9 +412,7 @@ sub checkAsteroids( byref state as GameState, dt as double )
   end with
 end sub
 
-/'
-  Updating
-'/
+'' Updating
 sub updateAsteroids( byref state as GameState, dt as double )
   '' The two Asteroid bounding circles
   var _
@@ -593,9 +566,7 @@ sub update( byref state as GameState, dt as double )
   checkAsteroids( state, dt )
 end sub
 
-/'
-  Rendering
-'/
+'' Rendering
 sub renderTriangle( _
   x1 as integer, y1 as integer,_
   x2 as integer, y2 as integer, _
@@ -675,9 +646,7 @@ sub render( byref state as GameState )
   flip()
 end sub
 
-/'
-  Initialization
-'/
+'' Initialization
 function init( xRes as integer, yRes as integer ) as BoundingBox
   randomize()
   screenRes( xRes, yRes, 32, 2 )
@@ -715,9 +684,7 @@ sub initState( byref s as GameState )
   end with
 end sub
 
-/'
-  Main code, at last!
-'/
+'' Main code, at last!
 var state = GameState( 1, 30, 2 )
 state.playArea = init( 800, 600 )
 
@@ -729,6 +696,7 @@ dim as double dt, fps
 dim as Fb.Event e
 
 do
+  '' Update
   do while( screenEvent( @e ) )
     state.keyboard.onEvent( @e )
     
@@ -739,6 +707,7 @@ do
   
   update( state, dt )
   
+  '' Render
   dt = timer()
     render( state )
     sleep( 1, 1 )

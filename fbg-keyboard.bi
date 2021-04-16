@@ -11,7 +11,7 @@ namespace FbGame
       declare destructor()
       
       declare sub onEvent( as any ptr )
-        
+      
       declare function pressed( as long ) as boolean
       declare function released(as long ) as boolean
       declare function held( as long, as double = 0.0 ) as boolean
@@ -51,8 +51,7 @@ namespace FbGame
   end constructor
   
   constructor KeyboardInput( aNumberOfKeys as integer )
-    dim as integer keys = iif( aNumberOfKeys < 128, _
-        128, aNumberOfKeys )
+    dim as integer keys = iif( aNumberOfKeys < 128, 128, aNumberOfKeys )
     
     redim _
       _state( 0 to keys - 1 ), _

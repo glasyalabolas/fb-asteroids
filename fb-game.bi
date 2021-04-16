@@ -1,5 +1,5 @@
-#ifndef __FB_GAME__
-#define __FB_GAME__
+#ifndef __FBGAME__
+#define __FBGAME__
 
 #include once "fbgfx.bi"
 #include once "fbg-vec2.bi"
