@@ -24,18 +24,16 @@ function rndNormal() as Vec2
 end function
 
 '' Returns a position within an area
-function rngWithin( byref bb as BoundingBox ) as Vec2
+function rngWithin( bb as BoundingBox ) as Vec2
   return( Vec2( rng( bb.x, bb.width ), rng( bb.y, bb.height ) ) )
 end function
 
-/'
-  Represents a spaceship that can move and fire
-'/
+'' Represents a spaceship that can move and fire
 type Ship
   declare constructor()
-  declare constructor( byref as Vec2 )
-  declare constructor( byref as Vec2, as single )
-  declare constructor( byref as Vec2, byref as Vec2, as single )
+  declare constructor( as Vec2 )
+  declare constructor( as Vec2, as single )
+  declare constructor( as Vec2, as Vec2, as single )
   declare destructor()
   
   as Vec2 pos, dir, vel, acc
@@ -49,15 +47,15 @@ constructor Ship()
   constructor( Vec2(), Vec2( 0.0f, -1.0f ), 10.0f )
 end constructor
 
-constructor Ship( byref aPos as Vec2 )
+constructor Ship( aPos as Vec2 )
   constructor( aPos, Vec2( 0.0f, -1.0f ), 10.0f )
 end constructor
 
-constructor Ship( byref aPos as Vec2, aSize as single )
+constructor Ship( aPos as Vec2, aSize as single )
   constructor( aPos, Vec2( 0.0f, -1.0f ), aSize )
 end constructor
 
-constructor Ship( byref aPos as Vec2, byref aDir as Vec2, aSize as single )
+constructor Ship( aPos as Vec2, aDir as Vec2, aSize as single )
   pos = aPos
   dir = aDir.normalized()
   size = aSize
@@ -79,7 +77,7 @@ end type
 '' Represents a player
 type Player
   declare constructor()
-  declare constructor( byref as Ship )
+  declare constructor( as Ship )
   declare destructor()
   
   as Ship playerShip
@@ -91,7 +89,7 @@ constructor Player()
   constructor( Ship( Vec2(), 20.0f ) )
 end constructor
 
-constructor Player( byref aShip as Ship )
+constructor Player( aShip as Ship )
   playerShip = aShip
   health = 100.0f
 end constructor
@@ -101,7 +99,7 @@ destructor Player() : end destructor
 '' Represents an asteroid
 type Asteroid
   declare constructor()
-  declare constructor( byref as Vec2, byref as Vec2, as single )
+  declare constructor( as Vec2, as Vec2, as single )
   declare destructor()
   
   as Vec2 pos, vel
@@ -113,7 +111,7 @@ constructor Asteroid()
   constructor( Vec2(), Vec2(), 0.0f )
 end constructor
 
-constructor Asteroid( byref aPos as Vec2, byref aVel as Vec2, aSize as single )
+constructor Asteroid( aPos as Vec2, aVel as Vec2, aSize as single )
   pos = aPos
   vel = aVel
   size = aSize
@@ -126,10 +124,9 @@ destructor Asteroid() : end destructor
 '' Represents a bullet
 type Bullet
   declare constructor()
-  declare constructor( byref as Vec2, byref as Vec2 )
-  declare constructor( byref as Vec2, byref as Vec2, as single )
-  declare constructor( _
-    byref as Vec2, byref as Vec2, as single, as single, as single )
+  declare constructor( as Vec2, as Vec2 )
+  declare constructor( as Vec2, as Vec2, as single )
+  declare constructor( as Vec2, as Vec2, as single, as single, as single )
   declare destructor()
   
   as Vec2 pos, dir
@@ -140,18 +137,15 @@ constructor Bullet()
   constructor( Vec2(), Vec2(), 4.0f )
 end constructor
 
-constructor Bullet( byref aPos as Vec2, byref aDir as Vec2 )
+constructor Bullet( aPos as Vec2, aDir as Vec2 )
   constructor( aPos, aDir, 4.0f )
 end constructor
 
-constructor Bullet( byref aPos as Vec2, byref aDir as Vec2, aSize as single )
+constructor Bullet( aPos as Vec2, aDir as Vec2, aSize as single )
   constructor( aPos, aDir, aSize, 2.0f, 100.0f )
 end constructor
 
-constructor Bullet( _
-  byref aPos as Vec2, byref aDir as Vec2, _
-  aSize as single, aSpeed as single, aLifetime as single )
-  
+constructor Bullet( aPos as Vec2, aDir as Vec2, aSize as single, aSpeed as single, aLifetime as single )
   pos = aPos
   dir = aDir
   size = aSize
@@ -213,9 +207,7 @@ constructor GameState()
   constructor( 1, 1, 50 )
 end constructor
 
-constructor GameState( _
-  numPlayers as integer, numAsteroids as integer, numBulletManagers as integer )
-  
+constructor GameState( numPlayers as integer, numAsteroids as integer, numBulletManagers as integer )
   playerCount = numPlayers
   asteroidCount = numAsteroids
   bulletManagerCount = numBulletManagers
@@ -230,19 +222,19 @@ end constructor
 destructor GameState() : end destructor
 
 '' Basic operations on data structures
-sub add overload( byref bm as BulletManager, byref b as Bullet )
+sub add overload( bm as BulletManager, b as Bullet )
   if( bm.bulletCount <= ubound( bm.bullets ) ) then
     bm.bulletCount += 1
     bm.bullets( bm.bulletCount - 1 ) = b
   end if
 end sub
 
-sub remove overload( byref bm as BulletManager, id as integer )
+sub remove overload( bm as BulletManager, id as integer )
   bm.bullets( id ) = bm.bullets( bm.bulletCount - 1 )
   bm.bulletCount -= 1
 end sub
 
-sub move overload( byref sh as Ship, dt as double )
+sub move overload( sh as Ship, dt as double )
   if( sh.vel.lengthSq() > sh.maxSpeed ^ 2 ) then
     sh.vel = sh.vel.normalized() * sh.maxSpeed
   end if
@@ -250,40 +242,32 @@ sub move overload( byref sh as Ship, dt as double )
   sh.pos += sh.vel * dt
 end sub
 
-sub accelerate( byref sh as Ship, byref a as Vec2 )
+sub accelerate( sh as Ship, a as Vec2 )
   sh.vel += a 
 end sub
 
-sub rotate( byref sh as Ship, a as single )
+sub rotate( sh as Ship, a as single )
   sh.dir = sh.dir.rotated( toRad( a ) ).normalize()
 end sub
 
-sub shoot( byref state as GameState, byref sh as Ship, dt as double )
+sub shoot( state as GameState, sh as Ship, dt as double )
   '' Choose a random direction arc
-  var bd = sh.dir.rotated( _
-    toRad( rng( -5.0f, 5.0f ) ) ).normalize()
+  var bd = sh.dir.rotated( toRad( rng( -5.0f, 5.0f ) ) ).normalize()
   
   '' Spawn the bullet in front of the player
-  add( state.bulletManagers( 0 ), Bullet( _
-    sh.pos + bd * sh.size, bd, _
-    6.0f, 500.0f, 1000.0f ) )
+  add( state.bulletManagers( 0 ), Bullet( sh.pos + bd * sh.size, bd, 6.0f, 500.0f, 1000.0f ) )
   
   '' Add a little backwards acceleration to the player's ship
   '' when firing.
   accelerate( sh, -sh.dir.normalized() * 400.0f * dt )
 end sub
 
-sub move( byref a as Asteroid, dt as double )
+sub move( a as Asteroid, dt as double )
   a.pos += a.vel * dt
 end sub
 
 '' Physics and collision detection and response
-function getCollisionNormal( _
-    byref N as Vec2, _
-    byref v1 as Vec2, _
-    byref v2 as Vec2 ) _
-  as Vec2
-  
+function getCollisionNormal( N as Vec2, v1 as Vec2, v2 as Vec2 ) as Vec2
   '' Compute tangent vector to normal and relative velocities
   '' of the collision.
   var _
@@ -300,20 +284,14 @@ function getCollisionNormal( _
 end function
 
 function resolveCollision( _
-    byref bc1 as BoundingCircle, _
-    byref bc2 as BoundingCircle, _
-    byref vN as Vec2, _
-    byref vel1 as Vec2, _
-    byref vel2 as Vec2 ) _
+    bc1 as BoundingCircle, bc2 as BoundingCircle, vN as Vec2, vel1 as Vec2, vel2 as Vec2 ) _
   as Vec2
   
   '' Compute the Minimum Translation Vector to move the
   '' overlapping circles out of collision.
-  var mtv = _
-    -( ( bc1.center - bc2.center ) - _
-       ( bc1.center - bc2.center ).ofLength( _
-         bc1.radius + bc2.radius ) )
-      
+  var mtv = -( ( bc1.center - bc2.center ) - _
+    ( bc1.center - bc2.center ).ofLength( bc1.radius + bc2.radius ) )
+  
   '' And reflect the velocities along the normal of
   '' the collision.
   vel1 -= vN
@@ -323,10 +301,7 @@ function resolveCollision( _
 end function
 
 function asteroidsCollided( _
-    byref a1 as BoundingCircle, _
-    byref a2 as BoundingCircle, _
-    byref vel1 as Vec2, _
-    byref vel2 as Vec2 ) _
+    a1 as BoundingCircle, a2 as BoundingCircle, vel1 as Vec2, vel2 as Vec2 ) _
   as Vec2
   
   '' Compute collision normal
@@ -337,10 +312,7 @@ function asteroidsCollided( _
 end function
 
 function shipAndAsteroidCollided( _
-    byref shbc as BoundingCircle, _
-    byref abc as BoundingCircle, _
-    byref vel1 as Vec2, _
-    byref vel2 as Vec2 ) _
+    shbc as BoundingCircle, abc as BoundingCircle, vel1 as Vec2, vel2 as Vec2 ) _
   as Vec2
   
   '' Get collision normal
@@ -350,7 +322,7 @@ function shipAndAsteroidCollided( _
   return( resolveCollision( shbc, abc, vN, vel1, vel2 ) )
 end function
 
-sub asteroidDestroyed( byref state as GameState, dt as double, asteroidId as integer )
+sub asteroidDestroyed( state as GameState, dt as double, asteroidId as integer )
   with state
     var destroyed = .asteroids( asteroidId )
     
@@ -370,7 +342,7 @@ sub asteroidDestroyed( byref state as GameState, dt as double, asteroidId as int
   end with
 end sub
 
-sub checkAsteroids( byref state as GameState, dt as double )
+sub checkAsteroids( state as GameState, dt as double )
   var _
     b = BoundingCircle(), _
     a = BoundingCircle()
@@ -413,7 +385,7 @@ sub checkAsteroids( byref state as GameState, dt as double )
 end sub
 
 '' Updating
-sub updateAsteroids( byref state as GameState, dt as double )
+sub updateAsteroids( state as GameState, dt as double )
   '' The two Asteroid bounding circles
   var _
     a1 = BoundingCircle(), _
@@ -450,7 +422,7 @@ sub updateAsteroids( byref state as GameState, dt as double )
   next
 end sub
 
-sub updatePlayers( byref state as GameState, dt as double )
+sub updatePlayers( state as GameState, dt as double )
   '' Player and Asteroid bounding circles, respectively
   var _
     pbc = BoundingCircle(), _
@@ -500,16 +472,10 @@ sub updatePlayers( byref state as GameState, dt as double )
       abc.radius = state.asteroids( j ).size
       
       if( pbc.overlapsWith( abc ) ) then
-        var vN = getCollisionNormal( _
-          ( pbc.center - abc.center ), _
-          sh.vel, _
-          state.asteroids( j ).vel )
+        var vN = getCollisionNormal( ( pbc.center - abc.center ), sh.vel, state.asteroids( j ).vel )
         
         '' Resolve player-asteroid collision
-        var mtv = resolveCollision( _
-          pbc, abc, vN, _
-          sh.vel, _
-          state.asteroids( j ).vel )
+        var mtv = resolveCollision( pbc, abc, vN, sh.vel, state.asteroids( j ).vel )
         
         '' Update the positions
         sh.pos += mtv * 0.5f
@@ -529,7 +495,7 @@ sub updatePlayers( byref state as GameState, dt as double )
   next
 end sub
 
-sub updateBulletManager( byref state as GameState, byref bm as BulletManager, dt as double )
+sub updateBulletManager( state as GameState, byref bm as BulletManager, dt as double )
   dim as integer current = 0
   
   do while( current < bm.bulletCount )
@@ -553,13 +519,13 @@ sub updateBulletManager( byref state as GameState, byref bm as BulletManager, dt
   loop
 end sub
 
-sub updateBulletManagers( byref state as GameState, dt as double )
+sub updateBulletManagers( state as GameState, dt as double )
   for i as integer = 0 to state.bulletManagerCount - 1
     updateBulletManager( state, state.bulletManagers( i ), dt )
   next
 end sub
 
-sub update( byref state as GameState, dt as double )
+sub update( state as GameState, dt as double )
   updatePlayers( state, dt )
   updateAsteroids( state, dt )
   updateBulletManagers( state, dt )
@@ -568,22 +534,20 @@ end sub
 
 '' Rendering
 sub renderTriangle( _
-  x1 as integer, y1 as integer,_
-  x2 as integer, y2 as integer, _
-  x3 as integer, y3 as integer, _
+  x1 as long, y1 as long, x2 as long, y2 as long, x3 as long, y3 as long, _
   c as ulong, buffer as any ptr = 0 )
   
   if( y2 < y1 ) then swap y1, y2 : swap x1, x2 : end if
   if( y3 < y1 ) then swap y3, y1 : swap x3, x1 : end if
   if( y3 < y2 ) then swap y3, y2 : swap x3, x2 : end if
   
-  dim as integer _
+  dim as long _
     delta1 = iif( y2 - y1 <> 0, ( ( x2 - x1 ) shl 16 ) \ ( y2 - y1 ), 0 ), _
     delta2 = iif( y3 - y2 <> 0, ( ( x3 - x2 ) shl 16 ) \ ( y3 - y2 ), 0 ), _
     delta3 = iif( y1 - y3 <> 0, ( ( x1 - x3 ) shl 16 ) \ ( y1 - y3 ), 0 )
   
   '' Top half
-  dim as integer lx = x1 shl 16, rx = lx
+  dim as long lx = x1 shl 16, rx = lx
   
   for y as integer = y1 to y2 - 1
     line buffer, ( lx shr 16, y ) - ( rx shr 16, y ), c 
@@ -599,7 +563,7 @@ sub renderTriangle( _
   next
 end sub
 
-sub renderShip( byref s as Ship, c as ulong )
+sub renderShip( s as Ship, c as ulong )
   var _
     p0 = s.pos + s.dir * s.size, _
     p1 = s.pos + s.dir.turnedLeft() * ( s.size * 0.5f ), _
@@ -609,7 +573,7 @@ sub renderShip( byref s as Ship, c as ulong )
   circle( s.pos.x, s.pos.y ), 5, c, , , , f
 end sub
 
-sub renderAsteroids( byref state as GameState )
+sub renderAsteroids( state as GameState )
   for i as integer = 0 to state.asteroidCount - 1
     with state.asteroids( i )
       circle( .pos.x, .pos.y ), .size, .color, , , , f
@@ -617,7 +581,7 @@ sub renderAsteroids( byref state as GameState )
   next
 end sub
 
-sub renderBullets( byref state as GameState )
+sub renderBullets( state as GameState )
   for i as integer = 0 to state.bulletManagers( 0 ).bulletCount - 1
     with state.bulletManagers( 0 ).bullets( i )
       var _
@@ -629,15 +593,13 @@ sub renderBullets( byref state as GameState )
   next
 end sub
 
-sub renderPlayers( byref state as GameState )
+sub renderPlayers( state as GameState )
   for i as integer = 0 to state.playerCount - 1
-    renderShip( _
-      state.players( i ).playerShip, _
-      rgba( 255, 255, 0, 255 ) )
+    renderShip( state.players( i ).playerShip, rgba( 255, 255, 0, 255 ) )
   next
 end sub
 
-sub render( byref state as GameState )
+sub render( state as GameState )
   cls()
     renderPlayers( state )
     renderAsteroids( state )
@@ -655,12 +617,10 @@ function init( xRes as integer, yRes as integer ) as BoundingBox
   return( BoundingBox( -20, -20, xRes + 20, yRes + 20 ) )
 end function
 
-sub initState( byref s as GameState )
+sub initState( s as GameState )
   with s
     .players( 0 ) = Player( _
-      Ship( Vec2( _
-        ( .playArea.width - .playArea.x ) / 2, _
-        ( .playArea.height - .playArea.y ) / 2 ), _
+      Ship( Vec2( ( .playArea.width - .playArea.x ) / 2, ( .playArea.height - .playArea.y ) / 2 ), _
       20.0f ) )
     
     with .players( 0 )
