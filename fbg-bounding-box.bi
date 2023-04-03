@@ -8,26 +8,22 @@ namespace FbGame
   
   type BoundingBox
     declare constructor()
-    declare constructor( _
-      as single, as single, as single, as single )
+    declare constructor( as single, as single, as single, as single )
     
     declare function centerAt( as single, as single ) byref as BoundingBox
     declare function inside( as single, as single ) as boolean
     declare function outside( as single, as single ) as boolean
-    declare function overlapsWith( byref as BoundingBox ) as boolean
-    declare function overlapsWith( byref as BoundingCircle_ ) as boolean
-    declare function overlapVector( byref as BoundingBox ) as Vec2
-    declare function insideOf( byref as BoundingBox ) as boolean
+    declare function overlapsWith( as BoundingBox ) as boolean
+    declare function overlapsWith( as BoundingCircle_ ) as boolean
+    declare function overlapVector( as BoundingBox ) as Vec2
+    declare function insideOf( as BoundingBox ) as boolean
     
-    as single _
-      x, y, width, height
+    as single x, y, width, height
   end type
   
   constructor BoundingBox() : end constructor
   
-  constructor BoundingBox( _
-    aX as single, aY as single, aWidth as single, aHeight as single )
-    
+  constructor BoundingBox( aX as single, aY as single, aWidth as single, aHeight as single )
     x = aX : y = aY
     this.width = aWidth : height = aHeight
   end constructor
@@ -48,7 +44,7 @@ namespace FbGame
     return( not inside( pX, pY ) )
   end function
   
-  private function BoundingBox.overlapsWith( byref another as BoundingBox ) as boolean
+  private function BoundingBox.overlapsWith( another as BoundingBox ) as boolean
     return( cbool( _
       x + width - 1 >= another.x andAlso _
       y + height - 1 >= another.y andAlso _
@@ -56,7 +52,7 @@ namespace FbGame
       y <= another.y + another.height - 1 ) )
   end function
   
-  private function BoundingBox.overlapVector( byref bb as BoundingBox ) as Vec2
+  private function BoundingBox.overlapVector( bb as BoundingBox ) as Vec2
     return( Vec2( _
       iif( x - bb.x >= 0 andAlso x + width - bb.x <= bb.width, _
         0, iif( bb.x - x < -width, _

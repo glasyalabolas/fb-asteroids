@@ -14,8 +14,8 @@ namespace FbGame
     declare function ofLength( as single ) as Vec2
     declare function normalize() byref as Vec2
     declare function normalized() as Vec2
-    declare function dot( byref as Vec2 ) as single
-    declare function cross( byref as Vec2 ) as single
+    declare function dot( as Vec2 ) as single
+    declare function cross( as Vec2 ) as single
     declare function turnLeft() byref as Vec2
     declare function turnedLeft() as Vec2
     declare function turnRight() byref as Vec2
@@ -23,16 +23,14 @@ namespace FbGame
     declare function angle() as single
     declare function rotate( as single ) byref as Vec2
     declare function rotated( as single ) as Vec2
-    declare function rotate( byref as Vec2, as single ) byref as Vec2
-    declare function rotated( byref as Vec2, as single ) as Vec2
-    declare function distanceTo( byref as Vec2 ) as single
-    declare function distanceToSq( byref as Vec2 ) as single
-    declare function aligned( _
-      byref as Vec2, byref as Vec2, byref as Vec2 ) as Vec2
-    declare function interpolated( byref as Vec2, as single ) as Vec2
+    declare function rotate( as Vec2, as single ) byref as Vec2
+    declare function rotated( as Vec2, as single ) as Vec2
+    declare function distanceTo( as Vec2 ) as single
+    declare function distanceToSq( as Vec2 ) as single
+    declare function aligned( as Vec2, as Vec2, as Vec2 ) as Vec2
+    declare function interpolated( as Vec2, as single ) as Vec2
     
-    as single _
-      x, y
+    as single x, y
   end type
   
   constructor Vec2() : end constructor
@@ -45,43 +43,43 @@ namespace FbGame
     return( "{x=" & x & ";y=" & y & "}" )
   end operator
   
-  operator + ( byref lhs as Vec2, byref rhs as Vec2 ) as Vec2
+  operator + ( lhs as Vec2, rhs as Vec2 ) as Vec2
     return( Vec2( lhs.x + rhs.x, lhs.y + rhs.y ) )
   end operator
   
-  operator + ( byref lhs as Vec2, rhs as single ) as Vec2
+  operator + ( lhs as Vec2, rhs as single ) as Vec2
     return( Vec2( lhs.x + rhs, lhs.y + rhs ) )
   end operator
   
-  operator - ( byref lhs as Vec2, byref rhs as Vec2 ) as Vec2
+  operator - ( lhs as Vec2, rhs as Vec2 ) as Vec2
     return( Vec2( lhs.x - rhs.x, lhs.y - rhs.y ) )
   end operator
   
-  operator - ( byref lhs as Vec2, rhs as single ) as Vec2
+  operator - ( lhs as Vec2, rhs as single ) as Vec2
     return( Vec2( lhs.x - rhs, lhs.y - rhs ) )
   end operator
   
-  operator - ( byref rhs as Vec2 ) as Vec2
+  operator - ( rhs as Vec2 ) as Vec2
     return( Vec2( -rhs.x, -rhs.y ) )
   end operator
   
-  operator * ( byref lhs as Vec2, byref rhs as Vec2 ) as Vec2
+  operator * ( lhs as Vec2, rhs as Vec2 ) as Vec2
     return( Vec2( lhs.x * rhs.x, lhs.y * rhs.y ) )
   end operator
   
-  operator * ( byref lhs as Vec2, rhs as single ) as Vec2
+  operator * ( lhs as Vec2, rhs as single ) as Vec2
     return( Vec2( lhs.x * rhs, lhs.y * rhs ) )
   end operator
   
-  operator / ( byref lhs as Vec2, byref rhs as Vec2 ) as Vec2
+  operator / ( lhs as Vec2, rhs as Vec2 ) as Vec2
     return( Vec2( lhs.x / rhs.x, lhs.y / rhs.y ) )
   end operator
   
-  operator / ( byref lhs as Vec2, rhs as single ) as Vec2
+  operator / ( lhs as Vec2, rhs as single ) as Vec2
     return( Vec2( lhs.x / rhs, lhs.y / rhs ) )
   end operator
   
-  operator sgn ( byref rhs as Vec2 ) as Vec2
+  operator sgn ( rhs as Vec2 ) as Vec2
     return( Vec2( sgn( rhs.x ), sgn( rhs.y ) ) )
   end operator
   
@@ -107,11 +105,11 @@ namespace FbGame
     return( Vec2( x * l, y * l ) )
   end function
   
-  private function Vec2.dot( byref v as Vec2 ) as single
+  private function Vec2.dot( v as Vec2 ) as single
     return( x * v.x + y * v.y )
   end function
   
-  private function Vec2.cross( byref v as Vec2 ) as single
+  private function Vec2.cross( v as Vec2 ) as single
     return( x * v.y - y * v.x )
   end function
   
@@ -164,7 +162,7 @@ namespace FbGame
     return( Vec2( x, y ).normalize() * aLength )
   end function
   
-  private function Vec2.rotate( byref pivot as Vec2, a as single ) byref as Vec2
+  private function Vec2.rotate( pivot as Vec2, a as single ) byref as Vec2
     var rv = ( this - pivot ).rotate( a ) + pivot
     
     x = rv.x : y = rv.y
@@ -172,25 +170,23 @@ namespace FbGame
     return( this )
   end function
   
-  private function Vec2.rotated( byref pivot as Vec2, a as single ) as Vec2
+  private function Vec2.rotated( pivot as Vec2, a as single ) as Vec2
     return( ( this - pivot ).rotate( a ) + pivot )
   end function
   
-  private function Vec2.distanceTo( byref v as Vec2 ) as single
+  private function Vec2.distanceTo( v as Vec2 ) as single
     return( ( this - v ).length() )
   end function
   
-  private function Vec2.distanceToSq( byref v as Vec2 ) as single
+  private function Vec2.distanceToSq( v as Vec2 ) as single
     return( ( this - v ).lengthSq() )
   end function
   
-  private function Vec2.aligned( _
-    byref p as Vec2, byref s as Vec2, byref a as Vec2 ) as Vec2
-    
+  private function Vec2.aligned( p as Vec2, s as Vec2, a as Vec2 ) as Vec2
     return( p + s * a.normalized() )
   end function
   
-  private function Vec2.interpolated( byref v as Vec2, t as single ) as Vec2
+  private function Vec2.interpolated( v as Vec2, t as single ) as Vec2
     return( this * ( 1.0f - t ) + v * t )
   end function
 end namespace

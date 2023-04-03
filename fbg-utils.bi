@@ -57,7 +57,7 @@ namespace FbGame
     return( w - x )
   end function
   
-  sub debugOut( byref t as const string )
+  private sub debugOut( t as const string )
     dim as long f = freeFile()
     
     open cons for output as f
