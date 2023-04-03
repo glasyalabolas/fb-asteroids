@@ -28,7 +28,9 @@ function rngWithin( bb as BoundingBox ) as Vec2
   return( Vec2( rng( bb.x, bb.width ), rng( bb.y, bb.height ) ) )
 end function
 
-'' Represents a spaceship that can move and fire
+/'
+  Represents a spaceship that can move and fire
+'/
 type Ship
   declare constructor()
   declare constructor( as Vec2 )
@@ -71,7 +73,7 @@ type PlayerControls
   as long _
     forward, backward, _
     rotateLeft, rotateRight, _
-    fire
+    fire, strafe
 end type
 
 '' Represents a player
@@ -145,7 +147,10 @@ constructor Bullet( aPos as Vec2, aDir as Vec2, aSize as single )
   constructor( aPos, aDir, aSize, 2.0f, 100.0f )
 end constructor
 
-constructor Bullet( aPos as Vec2, aDir as Vec2, aSize as single, aSpeed as single, aLifetime as single )
+constructor Bullet( _
+  aPos as Vec2, aDir as Vec2, _
+  aSize as single, aSpeed as single, aLifetime as single )
+  
   pos = aPos
   dir = aDir
   size = aSize
@@ -158,7 +163,7 @@ destructor Bullet() : end destructor
 '' Represents a group of bullets
 type BulletManager
   declare constructor()
-  declare constructor( as integer )
+  declare constructor( as long )
   declare destructor()
   
   as Bullet bullets( any )
@@ -169,7 +174,7 @@ constructor BulletManager()
   constructor( 256 )
 end constructor
 
-constructor BulletManager( numBullets as integer )
+constructor BulletManager( numBullets as long )
   redim bullets( 0 to numBullets - 1 )
   bulletCount = 0
 end constructor
@@ -179,7 +184,7 @@ destructor BulletManager() : end destructor
 '' Represents the global game state
 type GameState
   declare constructor()
-  declare constructor( as integer, as integer, as integer )
+  declare constructor( as long, as long, as long )
   declare destructor()
   
   as BoundingBox playArea
@@ -196,18 +201,20 @@ type GameState
     bulletManagerCount, _
     asteroidCount
   
-  static as const integer MAX_ASTEROIDS
+  static as const long MAX_ASTEROIDS
 end type
 
 '' Maximum number of asteroids at the same time. If this number
 '' is exceeded, the game would not spawn more asteroids.
-dim as const integer GameState.MAX_ASTEROIDS = 1000
+dim as const long GameState.MAX_ASTEROIDS = 1000
 
 constructor GameState()
-  constructor( 1, 1, 50 )
+  constructor( 1, 50, 1 )
 end constructor
 
-constructor GameState( numPlayers as integer, numAsteroids as integer, numBulletManagers as integer )
+constructor GameState( _
+  numPlayers as long, numAsteroids as long, numBulletManagers as long )
+  
   playerCount = numPlayers
   asteroidCount = numAsteroids
   bulletManagerCount = numBulletManagers
@@ -229,7 +236,7 @@ sub add overload( bm as BulletManager, b as Bullet )
   end if
 end sub
 
-sub remove overload( bm as BulletManager, id as integer )
+sub remove overload( bm as BulletManager, id as long )
   bm.bullets( id ) = bm.bullets( bm.bulletCount - 1 )
   bm.bulletCount -= 1
 end sub
@@ -252,10 +259,13 @@ end sub
 
 sub shoot( state as GameState, sh as Ship, dt as double )
   '' Choose a random direction arc
-  var bd = sh.dir.rotated( toRad( rng( -5.0f, 5.0f ) ) ).normalize()
+  var bd = sh.dir.rotated( _
+    toRad( rng( -5.0f, 5.0f ) ) ).normalize()
   
   '' Spawn the bullet in front of the player
-  add( state.bulletManagers( 0 ), Bullet( sh.pos + bd * sh.size, bd, 6.0f, 500.0f, 1000.0f ) )
+  add( state.bulletManagers( 0 ), Bullet( _
+    sh.pos + bd * sh.size, bd, _
+    6.0f, 500.0f, 1000.0f ) )
   
   '' Add a little backwards acceleration to the player's ship
   '' when firing.
@@ -289,9 +299,10 @@ function resolveCollision( _
   
   '' Compute the Minimum Translation Vector to move the
   '' overlapping circles out of collision.
-  var mtv = -( ( bc1.center - bc2.center ) - _
-    ( bc1.center - bc2.center ).ofLength( bc1.radius + bc2.radius ) )
-  
+  var mtv = _
+    -( ( bc1.center - bc2.center ) - ( bc1.center - bc2.center ).ofLength( _
+         bc1.radius + bc2.radius ) )
+    
   '' And reflect the velocities along the normal of
   '' the collision.
   vel1 -= vN
@@ -322,7 +333,7 @@ function shipAndAsteroidCollided( _
   return( resolveCollision( shbc, abc, vN, vel1, vel2 ) )
 end function
 
-sub asteroidDestroyed( state as GameState, dt as double, asteroidId as integer )
+sub asteroidDestroyed( state as GameState, dt as double, asteroidId as long )
   with state
     var destroyed = .asteroids( asteroidId )
     
@@ -350,13 +361,13 @@ sub checkAsteroids( state as GameState, dt as double )
   var byref bm = state.bulletManagers( 0 )
   
   with state.bulletManagers( 0 )
-    dim as integer currentBullet = 0
+    dim as long currentBullet = 0
     
     do while( currentBullet < .bulletCount )
       b.center = .bullets( currentBullet ).pos
       b.radius = .bullets( currentBullet ).size
       
-      dim as integer currentAsteroid = 0
+      dim as long currentAsteroid = 0
       dim as boolean removed = false
       
       do while( currentAsteroid < state.asteroidCount )
@@ -386,7 +397,7 @@ end sub
 
 '' Updating
 sub updateAsteroids( state as GameState, dt as double )
-  '' The two Asteroid bounding circles
+  '' The two asteroid bounding circles
   var _
     a1 = BoundingCircle(), _
     a2 = BoundingCircle()
@@ -405,8 +416,7 @@ sub updateAsteroids( state as GameState, dt as double )
         a2.radius = another.size
         
         if( a1.overlapsWith( a2 ) ) then
-          var mtv = asteroidsCollided( _
-            a1, a2, .vel, another.vel )
+          var mtv = asteroidsCollided( a1, a2, .vel, another.vel )
           
           '' Adjust the position of the asteroids
           .pos += mtv * 0.5f
@@ -440,6 +450,8 @@ sub updatePlayers( state as GameState, dt as double )
     pbc.radius = 5
     
     with state.playerControls( i )
+      dim as boolean strafing
+      
       if( state.keyboard.held( .forward ) ) then
         accelerate( sh, sh.dir * sh.accel * dt )
       end if
@@ -448,12 +460,24 @@ sub updatePlayers( state as GameState, dt as double )
         accelerate( sh, sh.dir * -sh.accel * dt )
       end if
       
+      if( state.keyboard.held( .strafe ) ) then
+        strafing = true
+      end if
+      
       if( state.keyboard.held( .rotateLeft ) ) then
-        rotate( sh, -sh.turnSpeed * dt )
+        if( strafing ) then
+          accelerate( sh, sh.dir.turnedRight() * sh.accel * dt )
+        else
+          rotate( sh, -sh.turnSpeed * dt )
+        end if
       end if
       
       if( state.keyboard.held( .rotateRight ) ) then
-        rotate( sh, sh.turnSpeed * dt )
+        if( strafing ) then
+          accelerate( sh, sh.dir.turnedLeft() * sh.accel * dt )
+        else
+          rotate( sh, sh.turnSpeed * dt )
+        end if
       end if
       
       if( state.keyboard.pressed( .fire ) ) then
@@ -472,12 +496,15 @@ sub updatePlayers( state as GameState, dt as double )
       abc.radius = state.asteroids( j ).size
       
       if( pbc.overlapsWith( abc ) ) then
-        var vN = getCollisionNormal( ( pbc.center - abc.center ), sh.vel, state.asteroids( j ).vel )
+        '' Get the normal for the collision
+        var vN = getCollisionNormal( _
+          ( pbc.center - abc.center ), sh.vel, state.asteroids( j ).vel )
         
-        '' Resolve player-asteroid collision
+        '' Resolve player-asteroid collision and retrieve the
+        '' Minimum Translation Vector.
         var mtv = resolveCollision( pbc, abc, vN, sh.vel, state.asteroids( j ).vel )
         
-        '' Update the positions
+        '' Update positions
         sh.pos += mtv * 0.5f
         state.asteroids( j ).pos -= mtv * 0.5f
         
@@ -495,8 +522,8 @@ sub updatePlayers( state as GameState, dt as double )
   next
 end sub
 
-sub updateBulletManager( state as GameState, byref bm as BulletManager, dt as double )
-  dim as integer current = 0
+sub updateBulletManager( state as GameState, bm as BulletManager, dt as double )
+  dim as long current = 0
   
   do while( current < bm.bulletCount )
     var byref b = bm.bullets( current )
@@ -510,9 +537,7 @@ sub updateBulletManager( state as GameState, byref bm as BulletManager, dt as do
     end if
     
     with state.playArea
-      b.pos = wrapV( b.pos, _
-        .x, .y, _
-        .width, .height )
+      b.pos = wrapV( b.pos, .x, .y, .width, .height )
     end with
     
     current += 1
@@ -534,7 +559,9 @@ end sub
 
 '' Rendering
 sub renderTriangle( _
-  x1 as long, y1 as long, x2 as long, y2 as long, x3 as long, y3 as long, _
+  x1 as long, y1 as long,_
+  x2 as long, y2 as long, _
+  x3 as long, y3 as long, _
   c as ulong, buffer as any ptr = 0 )
   
   if( y2 < y1 ) then swap y1, y2 : swap x1, x2 : end if
@@ -595,7 +622,9 @@ end sub
 
 sub renderPlayers( state as GameState )
   for i as integer = 0 to state.playerCount - 1
-    renderShip( state.players( i ).playerShip, rgba( 255, 255, 0, 255 ) )
+    renderShip( _
+      state.players( i ).playerShip, _
+      rgba( 255, 255, 0, 255 ) )
   next
 end sub
 
@@ -609,7 +638,7 @@ sub render( state as GameState )
 end sub
 
 '' Initialization
-function init( xRes as integer, yRes as integer ) as BoundingBox
+function init( xRes as long, yRes as long ) as BoundingBox
   randomize()
   screenRes( xRes, yRes, 32, 2 )
   screenSet( 0, 1 )
@@ -620,7 +649,9 @@ end function
 sub initState( s as GameState )
   with s
     .players( 0 ) = Player( _
-      Ship( Vec2( ( .playArea.width - .playArea.x ) / 2, ( .playArea.height - .playArea.y ) / 2 ), _
+      Ship( Vec2( _
+        ( .playArea.width - .playArea.x ) / 2, _
+        ( .playArea.height - .playArea.y ) / 2 ), _
       20.0f ) )
     
     with .players( 0 )
@@ -629,16 +660,14 @@ sub initState( s as GameState )
     end with
     
     .playerControls( 0 ) = type <PlayerControls>( _
-      Fb.SC_UP, Fb.SC_DOWN, Fb.SC_LEFT, Fb.SC_RIGHT, Fb.SC_SPACE )
+      Fb.SC_UP, Fb.SC_DOWN, Fb.SC_LEFT, Fb.SC_RIGHT, Fb.SC_SPACE, Fb.SC_LSHIFT )
     
     for i as integer = 0 to .asteroidCount - 1
       dim as single size = rng( 8.0f, 40.0f )
       
       .asteroids( i ) = Asteroid( _
         rngWithin( .playArea ), _
-        Vec2( _
-          rng( -1.0f, 1.0f ), _
-          rng( -1.0f, 1.0f ) ) * ( 200.0f - size * 5.0f ), _
+        Vec2( rng( -1.0f, 1.0f ), rng( -1.0f, 1.0f ) ) * ( 200.0f - size * 5.0f ), _
         size )
     next
   end with
